@@ -36,11 +36,6 @@ class Explorer:
             - `--vtkjs`: Use vtk.js for local rendering
         """
         self.server = get_server(server, client_type="vue3")
-        self.server.enable_module(base)
-        self.server.enable_module(preview)
-
-        # if self.server.hot_reload:
-        #    self.ctrl.on_server_reload.add(self._build_ui)
 
         parser = self.server.cli
         explorer = parser.add_argument_group("Explorer Properties")
@@ -357,7 +352,7 @@ class SummaryToolbar(v3.VCard):
 
         with self:
             with v3.VToolbar(
-                classes="pl-2",
+                classes="pl-2 d-flex",
                 height=50,
                 elevation=1,
                 style="background: none;",
@@ -828,6 +823,19 @@ class RenderingSettingsBasic(CollapsableSection):
                                         size="small",
                                         click="toggle",
                                     )
+
+    @change("data_arrays")
+    def _on_array_selection(self, data_arrays, **_):
+        if self.state.import_pending:
+            return
+
+        self.state.dirty_data = True
+        if len(data_arrays) == 1:
+            self.state.color_by = data_arrays[0]
+        elif len(data_arrays) == 0:
+            self.state.color_by = None
+
+        self.source.arrays = data_arrays
 
     def reset_color_range(self):
         color_by = self.state.color_by
